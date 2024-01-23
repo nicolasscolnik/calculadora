@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora</title>
+    <style>
+        /* Estilos (con cambios para ajustar el diseño) */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            overflow: hidden;
+            background: url('https://i.pinimg.com/originals/21/7d/a2/217da299cc918fad9b76eb99e4bb75b3.gif') center center fixed;
+            background-size: cover;
+        }
+
+        #calculator-container {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        #calculator {
+            border: 2px solid #ccc;
+            border-radius: 8px;
+            overflow: hidden;
+            width: 300px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        #display {
+            background-color: #eee;
+            padding: 10px;
+            text-align: right;
+            font-size: 1.5em;
+            height: 60px;
+        }
+
+        #buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-gap: 1px;
+        }
+
+        button {
+            border: none;
+            outline: none;
+            cursor: pointer;
+            font-size: 1.2em;
+            padding: 15px;
+            transition: background-color 0.3s;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        button:hover {
+            background-color: #ddd;
+        }
+
+        .operator,
+        .equals,
+        #clear,
+        #clear-all {
+            background-color: #1e82f7;
+            color: white;
+        }
+
+        #print-ticket {
+            background-color: #4caf50;
+            color: white;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            font-size: 1.2em;
+            padding: 15px;
+            transition: background-color 0.3s;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        #print-ticket:hover {
+            background-color: #45a049;
+        }
+
+        #calculator-info {
+            background-color: #c7ecc7;
+            /* Verde clarito */
+            padding: 10px;
+            text-align: center;
+            font-size: 1em;
+            grid-column: span 2;
+            /* Ocupa dos columnas */
+            display: flex;
+            align-items: center;
+        }
+
+        #calculator-info a {
+            text-decoration: none;
+            /* Quita el subrayado del enlace */
+            color: inherit;
+            /* Hereda el color del texto del contenedor padre */
+            margin-left: 10px;
+            /* Agrega un espacio a la izquierda del enlace */
+        }
+
+        #calculator-info img {
+            width: 30px;
+            /* Ajusta el tamaño de la imagen según sea necesario */
+        }
+    </style>
+</head>
+
+<body onload="generateUserId()">
+
+    <div id="calculator-container">
+        <div id="calculator">
+            <div id="display"></div>
+            <div id="buttons">
+                <button>7</button>
+                <button>8</button>
+                <button>9</button>
+                <button class="operator">/</button>
+                <button>4</button>
+                <button>5</button>
+                <button>6</button>
+                <button class="operator">*</button>
+                <button>1</button>
+                <button>2</button>
+                <button>3</button>
+                <button class="operator">-</button>
+                <button>0</button>
+                <button>.</button>
+                <button class="operator">+</button>
+                <button id="clear">C</button>
+                <button id="clear-all">CA</button>
+                <button class="equals" onclick="calculate()">=</button>
+                <div id="calculator-info">
+                    Calculadora by NS
+                    <a href="https://www.ferrocarriloeste.org.ar/" target="_blank">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c6/Escudo_del_Club_Ferro_Carril_Oeste.svg/1024px-Escudo_del_Club_Ferro_Carril_Oeste.svg.png"
+                            alt="Ferro Carril Oeste">
+                    </a>
+                </div>
+            </div>
+            <button id="print-ticket" onclick="printTicket()">Imprime ticket</button>
+
+        </div>
+    </div>
+
+    <script>
+        let display = document.getElementById('display');
+        let buttons = document.querySelectorAll('button');
+        let operand1 = '';
+        let operator = '';
+        let operand2 = '';
+        let resultDisplayed = false;
+
+        buttons.forEach(function (button) {
+            button.addEventListener('click', function () {
+                if (resultDisplayed) {
+                    if (button.textContent.match(/[0-9.]/)) {
+                        clearAll();
+                        resultDisplayed = false;
+                    } else {
+                        operand1 = display.textContent;
+                        operator = '';
+                        operand2 = '';
+                        resultDisplayed = false;
+                    }
+                }
+
+                if (button.textContent.match(/[0-9.]/)) {
+                    if (operator === '') {
+                        operand1 += button.textContent;
+                    } else {
+                        operand2 += button.textContent;
+                    }
+                } else if (button.classList.contains('operator')) {
+                    if (operator !== '') {
+                        calculate();
+                    }
+                    operator = button.textContent;
+                } else if (button.id === 'clear') {
+                    clearLast();
+                } else if (button.id === 'clear-all') {
+                    clearAll();
+                } else if (button.classList.contains('equals')) {
+                    calculate();
+                    resultDisplayed = true;
+                }
+                updateDisplay();
+            });
+        });
+
+        document.addEventListener('keydown', function (event) {
+            const key = event.key;
+
+            if (resultDisplayed) {
+                if (key.match(/[0-9.]/)) {
+                    clearAll();
+                    resultDisplayed = false;
+                } else if (key.match(/[/+*-]/)) {
+                    operand1 = display.textContent;
+                    operator = '';
+                    operand2 = '';
+                    resultDisplayed = false;
+                }
+            }
+
+            if (key.match(/[0-9.]/)) {
+                if (operator === '') {
+                    operand1 += key;
+                } else {
+                    operand2 += key;
+                }
+            } else if (key.match(/[/+*-]/)) {
+                if (operator !== '') {
+                    calculate();
+                }
+                operator = key;
+            } else if (key === 'Enter') {
+                calculate();
+                resultDisplayed = true;
+            } else if (key === 'Backspace') {
+                clearLast();
+            } else if (key === 'Escape') {
+                clearAll();
+            }
+
+            updateDisplay();
+        });
+
+        function updateDisplay() {
+            display.textContent = operand1 + ' ' + operator + ' ' + operand2;
+        }
+
+        function calculate() {
+            if (operand1 !== '' && operand2 !== '' && operator !== '') {
+                let result;
+                switch (operator) {
+                    case '+':
+                        result = parseFloat(operand1) + parseFloat(operand2);
+                        break;
+                    case '-':
+                        result = parseFloat(operand1) - parseFloat(operand2);
+                        break;
+                    case '*':
+                        result = parseFloat(operand1) * parseFloat(operand2);
+                        break;
+                    case '/':
+                        result = parseFloat(operand1) / parseFloat(operand2);
+                        break;
+                    default:
+                        break;
+                }
+
+                if (!isNaN(result)) {
+                    const operation = `${operand1} ${operator} ${operand2} = ${result.toFixed(2)}`;
+                    const postData = {
+                        operacion: operation,
+                        createdById: id
+                    };
+
+                    operand1 = result.toFixed(2);
+                    operator = '';
+                    operand2 = '';
+
+                    // Almacenar en el Local Storage
+                    let storedData = JSON.parse(localStorage.getItem('calculatorData')) || [];
+                    storedData.push(postData);
+                    localStorage.setItem('calculatorData', JSON.stringify(storedData));
+
+                    updateDisplay();
+                }
+            }
+        }
+
+        function clearLast() {
+            if (operand2 !== '') {
+                operand2 = operand2.slice(0, -1);
+            } else if (operator !== '') {
+                operator = '';
+            } else if (operand1 !== '') {
+                operand1 = operand1.slice(0, -1);
+            }
+            updateDisplay();
+        }
+
+        function clearAll() {
+            operand1 = '';
+            operator = '';
+            operand2 = '';
+            updateDisplay();
+        }
+
+        const id = Math.floor(Math.random() * 90000000) + 10000000;
+
+        function generateUserId() {
+            console.log("Generated User ID:", id);
+        }
+
+        function printTicket() {
+            // Obtener datos del Local Storage
+            let storedData = JSON.parse(localStorage.getItem('calculatorData')) || [];
+            const userOperations = storedData.filter(item => item.createdById === id);
+            const ticketContent = userOperations.map(op => op.operacion).join('\n');
+            const ticketWindow = window.open('', '_blank');
+            ticketWindow.document.write('<pre>' + ticketContent + '</pre>');
+        }
+    </script>
+
+</body>
+
+</html>
